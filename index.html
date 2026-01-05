@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween OCR | Scanner Teks Akurat dari Gambar & Kamera</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=UnifrakturMaguntia&family=Cormorant+Garamond:wght@400;500;600&family=Old+Standard+TT&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/translatorjs/2.0.0/translator.min.js"></script>
+    <style>
+        :root {
+            --halloween-orange: #FF7518;
+            --halloween-purple: #4B0082;
+            --halloween-black: #0A0A0A;
+            --halloween-gray: #2A2A2A;
+            --halloween-silver: #B0B0B0;
+            --halloween-blood: #8B0000;
+            --halloween-glow: #FF4500;
+            --halloween-green: #228B22;
+            --shadow-heavy: 5px 5px 15px rgba(0, 0, 0, 0.7);
+            --neon-glow: 0 0 15px var(--halloween-glow);
+            --cobweb: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: 
+                radial-gradient(circle at 20% 30%, #0A0A0A 0%, #1A1A1A 100%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M10,10 Q50,5 90,10 Q95,50 90,90 Q50,95 10,90 Q5,50 10,10 Z" fill="%234B0082" opacity="0.03"/></svg>');
+            color: var(--halloween-silver);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 20px,
+                    var(--cobweb) 20px,
+                    var(--cobweb) 40px
+                );
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Halloween Effects */
+        .halloween-effects {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .pumpkin-light {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--halloween-orange) 0%, transparent 70%);
+            opacity: 0.4;
+            filter: blur(40px);
+            animation: pumpkin-flicker 3s infinite ease-in-out;
+        }
+
+        .pumpkin-light:nth-child(1) {
+            width: 400px;
+            height: 400px;
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .pumpkin-light:nth-child(2) {
+            width: 300px;
+            height: 300px;
+            bottom: 15%;
+            right: 10%;
+            animation-delay: -1.5s;
+        }
+
+        @keyframes pumpkin-flicker {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 0.3;
+            }
+            25% { 
+                transform: scale(1.1) rotate(5deg);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: scale(0.9) rotate(-5deg);
+                opacity: 0.4;
+            }
+            75% { 
+                transform: scale(1.05) rotate(3deg);
+                opacity: 0.6;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .halloween-header {
+            text-align: center;
+            padding: 40px 0;
+            margin-bottom: 50px;
+            border-bottom: 3px solid var(--halloween-orange);
+            position: relative;
+            background: linear-gradient(45deg, transparent, rgba(75, 0, 130, 0.1), transparent);
+        }
+
+        .halloween-header::before,
+        .halloween-header::after {
+            content: '🔮';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 50px;
+            text-shadow: var(--neon-glow);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .halloween-header::before {
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .halloween-header::after {
+            right: 10%;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(-50%) rotate(0deg); }
+            50% { transform: translateY(-60%) rotate(180deg); }
+        }
+
+        .title-badge {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 85px;
+            color: var(--halloween-orange);
+            text-shadow: 
+                0 0 25px var(--halloween-glow),
+                3px 3px 0 var(--halloween-black),
+                6px 6px 0 rgba(139, 0, 0, 0.3);
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .title-badge::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--halloween-orange), transparent);
+        }
+
+        .subtitle-badge {
+            font-family: 'Cinzel', serif;
+            font-size: 26px;
+            color: var(--halloween-silver);
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Panel Gothic */
+        .gothic-panel {
+            background: 
+                linear-gradient(135deg, var(--halloween-black) 0%, var(--halloween-gray) 100%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%234B0082" stroke-width="1.5" stroke-dasharray="8,4"/></svg>');
+            border: 12px solid transparent;
+            border-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%23FF7518" stroke-width="8" stroke-linecap="square"/></svg>') 30 stretch;
+            border-radius: 0;
+            padding: 45px;
+            margin-bottom: 50px;
+            position: relative;
+            box-shadow: 
+                var(--shadow-heavy),
+                inset 0 0 60px rgba(255, 117, 24, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .gothic-panel:hover {
+            box-shadow: 
+                var(--shadow-heavy),
+                inset 0 0 80px rgba(255, 117, 24, 0.25),
+                0 0 30px rgba(255, 117, 24, 0.2);
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 34px;
+            color: var(--halloween-orange);
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 3px double var(--halloween-purple);
+            text-align: center;
+            letter-spacing: 2px;
+            position: relative;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Upload Area */
+        .crypt-upload-area {
+            border: 8px double var(--halloween-orange);
+            background: rgba(26, 26, 26, 0.8);
+            padding: 70px 30px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 35px;
+            position: relative;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .crypt-upload-area:hover {
+            background: rgba(75, 0, 130, 0.2);
+            border-color: var(--halloween-purple);
+            box-shadow: 0 0 40px rgba(255, 117, 24, 0.4);
+        }
+
+        .upload-icon {
+            font-size: 90px;
+            color: var(--halloween-orange);
+            margin-bottom: 25px;
+            text-shadow: 3px 3px 0 var(--halloween-black);
+            animation: icon-float 2s ease-in-out infinite;
+        }
+
+        @keyframes icon-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        .upload-text {
+            font-family: 'Cinzel', serif;
+            font-size: 26px;
+            color: var(--halloween-silver);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .upload-hint {
+            color: var(--halloween-silver);
+            font-size: 17px;
+            margin-bottom: 30px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        /* Gothic Button */
+        .gothic-btn {
+            background: linear-gradient(to bottom, var(--halloween-orange), var(--halloween-black));
+            color: var(--halloween-silver);
+            border: 3px solid var(--halloween-orange);
+            padding: 20px 40px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 19px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .gothic-btn:hover {
+            background: linear-gradient(to bottom, var(--halloween-purple), var(--halloween-orange));
+            border-color: var(--halloween-purple);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(255, 117, 24, 0.4);
+        }
+
+        .gothic-btn:active {
+            transform: translateY(0);
+        }
+
+        .gothic-btn i {
+            margin-right: 12px;
+            color: var(--halloween-silver);
+        }
+
+        /* Preview Container */
+        .preview-container {
+            margin: 35px 0;
+            position: relative;
+            display: none;
+        }
+
+        .preview-wrapper {
+            position: relative;
+            border: 10px solid var(--halloween-orange);
+            padding: 12px;
+            background: var(--halloween-black);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .image-preview {
+            width: 100%;
+            display: block;
+            border: 4px inset var(--halloween-purple);
+            filter: sepia(0.3) contrast(1.1);
+            max-height: 500px;
+            object-fit: contain;
+        }
+
+        /* Camera Container */
+        .camera-container {
+            margin: 35px 0;
+            display: none;
+            border: 10px solid var(--halloween-orange);
+            padding: 12px;
+            background: var(--halloween-black);
+        }
+
+        .camera-view {
+            width: 100%;
+            max-height: 500px;
+            background: #000;
+            margin-bottom: 20px;
+            border: 4px solid var(--halloween-purple);
+            display: block;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        /* Camera Resolution Control */
+        .camera-resolution-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(42, 42, 42, 0.8);
+            border: 2px solid var(--halloween-orange);
+            font-family: 'Old Standard TT', serif;
+        }
+
+        .resolution-label {
+            color: var(--halloween-orange);
+            font-size: 15px;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .resolution-select {
+            flex: 1;
+            padding: 10px;
+            background: var(--halloween-black);
+            color: var(--halloween-silver);
+            border: 1px solid var(--halloween-purple);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .resolution-info {
+            color: var(--halloween-silver);
+            font-size: 13px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        /* Text Detection Overlay */
+        .text-detection-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            pointer-events: none;
+        }
+
+        .detected-text-box {
+            position: absolute;
+            border: 2px solid var(--halloween-orange);
+            background: rgba(255, 117, 24, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .detected-text-box:hover {
+            background: rgba(255, 117, 24, 0.3);
+            border-color: var(--halloween-purple);
+            box-shadow: 0 0 10px rgba(255, 117, 24, 0.5);
+            z-index: 10;
+        }
+
+        .detected-text-box.active {
+            background: rgba(75, 0, 130, 0.3);
+            border-color: var(--halloween-green);
+            box-shadow: 0 0 15px rgba(34, 139, 34, 0.5);
+            z-index: 20;
+        }
+
+        .text-box-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: var(--halloween-black);
+            color: var(--halloween-orange);
+            padding: 3px 8px;
+            font-size: 11px;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            border: 1px solid var(--halloween-orange);
+            white-space: nowrap;
+            display: none;
+            z-index: 30;
+        }
+
+        .detected-text-box:hover .text-box-label {
+            display: block;
+        }
+
+        /* Image Processing Controls */
+        .image-processing-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(42, 42, 42, 0.8);
+            border: 2px solid var(--halloween-orange);
+            display: none;
+        }
+
+        .control-group {
+            position: relative;
+        }
+
+        .control-label {
+            display: block;
+            color: var(--halloween-orange);
+            margin-bottom: 12px;
+            font-family: 'Cinzel', serif;
+            font-size: 19px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-label i {
+            margin-right: 12px;
+            color: var(--halloween-purple);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 16px;
+            background: var(--halloween-black);
+            color: var(--halloween-silver);
+            border: 2px solid var(--halloween-orange);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 17px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            color: var(--halloween-orange);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 10px;
+            -webkit-appearance: none;
+            background: var(--halloween-gray);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--halloween-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--halloween-black);
+        }
+
+        /* OCR Controls */
+        .ocr-controls-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 25px;
+            margin: 35px 0;
+            padding: 25px;
+            background: rgba(42, 42, 42, 0.8);
+            border: 3px ridge var(--halloween-orange);
+            backdrop-filter: blur(5px);
+        }
+
+        /* Preview Text Area */
+        .preview-text-container {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .preview-text-area {
+            background: rgba(26, 26, 26, 0.9);
+            border: 3px solid var(--halloween-purple);
+            padding: 20px;
+            min-height: 150px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Old Standard TT', serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--halloween-silver);
+            white-space: pre-wrap;
+            border-radius: 5px;
+        }
+
+        .preview-text-area:empty::before {
+            content: "Pratinjau teks yang terdeteksi akan muncul di sini...";
+            color: var(--halloween-orange);
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        /* Progress Bar */
+        .spell-progress {
+            margin: 35px 0;
+            background: var(--halloween-black);
+            border: 3px inset var(--halloween-orange);
+            padding: 15px;
+            display: none;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 22px;
+            background: linear-gradient(to right, var(--halloween-black), var(--halloween-gray));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fuel {
+            height: 100%;
+            background: linear-gradient(90deg, var(--halloween-purple), var(--halloween-orange), var(--halloween-purple));
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        /* Result Area */
+        .result-area {
+            background: 
+                linear-gradient(to bottom, var(--halloween-gray), var(--halloween-black)),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%234B0082" stroke-width="2" opacity="0.4"/></svg>');
+            color: var(--halloween-silver);
+            border: 12px solid transparent;
+            border-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="none" stroke="%23FF7518" stroke-width="10" stroke-linecap="square"/></svg>') 30 stretch;
+            padding: 35px;
+            min-height: 450px;
+            max-height: 550px;
+            overflow-y: auto;
+            font-family: 'Old Standard TT', serif;
+            font-size: 17px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            box-shadow: 
+                inset 0 0 60px rgba(255, 117, 24, 0.2),
+                var(--shadow-heavy);
+            position: relative;
+        }
+
+        .result-area:empty::before {
+            content: "Hasil ekstraksi teks lengkap akan muncul di sini...";
+            color: var(--halloween-orange);
+            font-style: italic;
+            text-align: center;
+            display: block;
+            padding-top: 180px;
+            font-size: 20px;
+            opacity: 0.7;
+        }
+
+        /* Statistics */
+        .gothic-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-badge {
+            background: linear-gradient(135deg, var(--halloween-purple), var(--halloween-black));
+            padding: 25px;
+            text-align: center;
+            border: 3px groove var(--halloween-orange);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--halloween-orange);
+            text-shadow: 2px 2px 0 var(--halloween-black);
+            font-family: 'Cinzel', serif;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 15px;
+            color: var(--halloween-silver);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+        }
+
+        /* Actions */
+        .gothic-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin: 35px 0;
+        }
+
+        /* Translation Modal */
+        .gothic-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-gothic {
+            background: linear-gradient(135deg, var(--halloween-black), var(--halloween-gray));
+            border: 15px solid var(--halloween-orange);
+            padding: 50px;
+            max-width: 850px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 0 60px var(--halloween-purple);
+        }
+
+        .modal-title {
+            color: var(--halloween-orange);
+            margin-bottom: 35px;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: 32px;
+            text-transform: uppercase;
+        }
+
+        /* Footer */
+        .gothic-footer {
+            text-align: center;
+            padding: 50px 0;
+            margin-top: 60px;
+            border-top: 3px solid var(--halloween-orange);
+            position: relative;
+            background: linear-gradient(45deg, transparent, rgba(75, 0, 130, 0.1), transparent);
+        }
+
+        .footer-icons {
+            font-size: 45px;
+            color: var(--halloween-orange);
+            margin-bottom: 25px;
+            letter-spacing: 15px;
+        }
+
+        .footer-text {
+            color: var(--halloween-silver);
+            font-size: 15px;
+            letter-spacing: 2.5px;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        /* Loading Animation */
+        .gothic-loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.97);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .loading-icon {
+            font-size: 120px;
+            color: var(--halloween-orange);
+            animation: cauldron-bubble 2s infinite ease-in-out;
+            margin-bottom: 40px;
+            filter: drop-shadow(0 0 10px var(--halloween-purple));
+        }
+
+        @keyframes cauldron-bubble {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+                filter: drop-shadow(0 0 10px var(--halloween-purple));
+            }
+            25% { 
+                transform: scale(1.1) rotate(5deg);
+                filter: drop-shadow(0 0 20px var(--halloween-orange));
+            }
+            50% { 
+                transform: scale(1) rotate(0deg);
+                filter: drop-shadow(0 0 15px var(--halloween-purple));
+            }
+            75% { 
+                transform: scale(1.05) rotate(-5deg);
+                filter: drop-shadow(0 0 25px var(--halloween-orange));
+            }
+        }
+
+        .loading-text {
+            font-family: 'Cinzel', serif;
+            font-size: 28px;
+            color: var(--halloween-silver);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: text-pulse 2s infinite;
+        }
+
+        /* Notification */
+        .gothic-notification {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            max-width: 420px;
+            z-index: 1000;
+            animation: spell-cast 0.5s ease;
+            background: linear-gradient(135deg, var(--halloween-black), var(--halloween-gray));
+            border: 3px solid var(--halloween-orange);
+            padding: 25px;
+            font-family: 'Cormorant Garamond', serif;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        }
+
+        @keyframes spell-cast {
+            from { 
+                transform: translateX(100%) translateY(-100%) scale(0.5);
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0) translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: var(--halloween-black);
+            color: var(--halloween-orange);
+            padding: 10px 15px;
+            border: 1px solid var(--halloween-orange);
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1000;
+            max-width: 300px;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .title-badge { font-size: 45px; }
+            .subtitle-badge { font-size: 18px; }
+            .gothic-panel { padding: 25px; }
+            .ocr-controls-panel { grid-template-columns: 1fr; }
+            .image-processing-controls { grid-template-columns: 1fr; }
+            .gothic-actions { grid-template-columns: 1fr; }
+            .gothic-btn { padding: 15px 25px; font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Halloween Effects -->
+    <div class="halloween-effects">
+        <div class="pumpkin-light"></div>
+        <div class="pumpkin-light"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="halloween-header">
+            <h1 class="title-badge">HALLOWEEN OCR</h1>
+            <div class="subtitle-badge">SCANNER TEKS DARI GAMBAR & KAMERA</div>
+            <div style="margin-top: 25px; font-size: 28px; color: var(--halloween-orange);">
+                <span>🔮</span> <span>📷</span> <span>👁️</span> <span>🌐</span>
+            </div>
+        </header>
+
+        <!-- Main Panel -->
+        <div class="gothic-panel">
+            <h2 class="panel-title">📷 SCANNER MULTI-SUMBER 📷</h2>
+            
+            <!-- Upload Area -->
+            <div class="crypt-upload-area" id="uploadArea">
+                <div class="upload-icon"></div>
+                <div class="upload-text">UNGGAH GAMBAR ATAU GUNAKAN KAMERA</div>
+                <div class="upload-hint">Pilih metode input yang diinginkan</div>
+                <button class="gothic-btn" id="browseBtn">
+                    <i class="fas fa-file-upload"></i> PILIH GAMBAR
+                </button>
+                <button class="gothic-btn" id="cameraBtn" style="margin-left: 15px;">
+                    <i class="fas fa-camera"></i> BUKA KAMERA
+                </button>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+
+            <!-- Image Preview with Text Detection -->
+            <div class="preview-container" id="previewContainer">
+                <div class="preview-wrapper">
+                    <img id="imagePreview" class="image-preview" alt="Preview Gambar">
+                    <div class="text-detection-overlay" id="textDetectionOverlay"></div>
+                </div>
+                
+                <!-- Image Processing Controls -->
+                <div class="image-processing-controls" id="imageControls">
+                    <div class="control-group">
+                        <label class="control-label">
+                            <i class="fas fa-adjust"></i> PENINGKATAN KONTRAST
+                        </label>
+                        <div class="slider-container">
+                            <input type="range" id="contrastSlider" min="50" max="200" value="100">
+                            <span class="slider-value" id="contrastValue">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">
+                            <i class="fas fa-sun"></i> PENYESUAIAN KECERAHAN
+                        </label>
+                        <div class="slider-container">
+                            <input type="range" id="brightnessSlider" min="50" max="200" value="100">
+                            <span class="slider-value" id="brightnessValue">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">
+                            <i class="fas fa-magic"></i> OTOMATIS
+                        </label>
+                        <button class="gothic-btn" id="autoEnhanceBtn" style="width: 100%; padding: 15px;">
+                            <i class="fas fa-wand-magic-sparkles"></i> OPTIMALKAN GAMBAR
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview Text Area -->
+                <div class="preview-text-container" id="previewTextContainer">
+                    <div class="preview-text-area" id="previewTextArea"></div>
+                </div>
+            </div>
+
+            <!-- Camera Container -->
+            <div class="camera-container" id="cameraContainer">
+                <!-- Camera Resolution Control -->
+                <div class="camera-resolution-control">
+                    <span class="resolution-label">RESOLUSI KAMERA:</span>
+                    <select id="resolutionSelect" class="resolution-select">
+                        <option value="auto">Otomatis (Disarankan)</option>
+                        <option value="hd">HD (1280x720)</option>
+                        <option value="fullhd">Full HD (1920x1080)</option>
+                        <option value="ultrahd">4K (3840x2160)</option>
+                    </select>
+                    <span class="resolution-info" id="resolutionInfo"></span>
+                </div>
+                
+                <video class="camera-view" id="cameraView" autoplay playsinline></video>
+                <div class="camera-controls">
+                    <button class="gothic-btn" id="captureBtn">
+                        <i class="fas fa-camera-retro"></i> AMBIL FOTO
+                    </button>
+                    <button class="gothic-btn" id="stopCameraBtn">
+                        <i class="fas fa-stop"></i> HENTIKAN KAMERA
+                    </button>
+                </div>
+            </div>
+
+            <!-- OCR Controls -->
+            <div class="ocr-controls-panel">
+                <div class="control-group">
+                    <label class="control-label">
+                        <i class="fas fa-language"></i> BAHASA TEKS
+                    </label>
+                    <select id="languageSelect">
+                        <option value="eng">🇬🇧 Bahasa Inggris</option>
+                        <option value="ind" selected>🇮🇩 Bahasa Indonesia</option>
+                        <option value="eng+ind">🌍 Inggris + Indonesia</option>
+                        <option value="jpn">🇯🇵 Bahasa Jepang</option>
+                        <option value="chi_sim">🇨🇳 Bahasa Mandarin</option>
+                        <option value="kor">🇰🇷 Bahasa Korea</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">
+                        <i class="fas fa-sliders-h"></i> MODE DETEKSI
+                    </label>
+                    <select id="detectionModeSelect">
+                        <option value="auto">🔮 Auto Deteksi (Rekomendasi)</option>
+                        <option value="single_line">📝 Satu Baris Teks</option>
+                        <option value="single_block">📦 Satu Blok Teks</option>
+                        <option value="multiple_blocks">📄 Multiple Blok</option>
+                        <option value="sparse_text">🔍 Teks Tersebar</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">
+                        <i class="fas fa-bolt"></i> KECEPATAN SCAN
+                    </label>
+                    <select id="speedSelect">
+                        <option value="accurate">🎯 Akurat (Presisi Tinggi)</option>
+                        <option value="balanced">⚖️ Seimbang</option>
+                        <option value="fast">⚡ Cepat</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="spell-progress" id="progressContainer">
+                <div style="margin-bottom: 12px; color: var(--halloween-orange); font-family: 'Cinzel', serif;">
+                    <span id="progressText">Mempersiapkan scanner...</span>
+                    <span id="progressPercent" style="float: right;">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fuel" id="progressFill"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin-top: 35px;">
+                <button class="gothic-btn" id="detectTextBtn" style="margin-right: 15px;">
+                    <i class="fas fa-eye"></i> DETEKSI TEKS
+                </button>
+                <button class="gothic-btn" id="scanFullBtn" style="padding: 22px 55px; font-size: 24px;">
+                    <i class="fas fa-hat-wizard"></i> SCAN FULL TEKS!
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="gothic-panel">
+            <h2 class="panel-title">📜 HASIL SCAN TEKS 📜</h2>
+            
+            <div class="result-area" id="resultText" contenteditable="true"></div>
+
+            <!-- Statistics -->
+            <div class="gothic-stats" id="resultStats" style="display: none;">
+                <div class="stat-badge">
+                    <div class="stat-value" id="charCount">0</div>
+                    <div class="stat-label">KARAKTER</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-value" id="wordCount">0</div>
+                    <div class="stat-label">KATA</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-value" id="lineCount">0</div>
+                    <div class="stat-label">BARIS</div>
+                </div>
+                <div class="stat-badge">
+                    <div class="stat-value" id="confidence">0%</div>
+                    <div class="stat-label">AKURASI</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="gothic-actions">
+                <button class="gothic-btn" id="copyBtn">
+                    <i class="fas fa-copy"></i> SALIN TEKS
+                </button>
+                <button class="gothic-btn" id="downloadBtn">
+                    <i class="fas fa-download"></i> UNDUH TEKS
+                </button>
+                <button class="gothic-btn" id="translateBtn">
+                    <i class="fas fa-globe"></i> TERJEMAHKAN
+                </button>
+                <button class="gothic-btn" id="speakBtn">
+                    <i class="fas fa-volume-up"></i> DENGARKAN
+                </button>
+                <button class="gothic-btn" id="clearBtn">
+                    <i class="fas fa-trash"></i> HAPUS HASIL
+                </button>
+            </div>
+        </div>
+
+        <!-- Translation Modal -->
+        <div class="gothic-modal" id="translateModal">
+            <div class="modal-gothic">
+                <h2 class="modal-title">🌐 TERJEMAHKAN TEKS 🌐</h2>
+                
+                <div class="control-group" style="margin-bottom: 25px;">
+                    <label class="control-label">
+                        <i class="fas fa-language"></i> BAHASA SUMBER
+                    </label>
+                    <select id="translateFrom">
+                        <option value="auto">Deteksi Otomatis</option>
+                        <option value="en">Bahasa Inggris</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="ja">Bahasa Jepang</option>
+                        <option value="zh">Bahasa Mandarin</option>
+                    </select>
+                </div>
+
+                <div class="control-group" style="margin-bottom: 25px;">
+                    <label class="control-label">
+                        <i class="fas fa-arrow-right"></i> BAHASA TUJUAN
+                    </label>
+                    <select id="translateTo">
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="en">Bahasa Inggris</option>
+                        <option value="ja">Bahasa Jepang</option>
+                        <option value="zh">Bahasa Mandarin</option>
+                        <option value="ko">Bahasa Korea</option>
+                        <option value="ru">Bahasa Rusia</option>
+                        <option value="ar">Bahasa Arab</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 35px;">
+                    <button class="gothic-btn" id="doTranslateBtn" style="flex: 1;">
+                        <i class="fas fa-magic"></i> TERJEMAHKAN
+                    </button>
+                    <button class="gothic-btn" id="closeTranslateBtn" style="flex: 1;">
+                        <i class="fas fa-times"></i> TUTUP
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="gothic-footer">
+            <div class="footer-icons">
+                <span>🔮</span><span>📷</span><span>👁️</span><span>🌐</span><span>🎃</span>
+            </div>
+            <p class="footer-text">SCANNER TEKS LENGKAP DENGAN KAMERA & TERJEMAHAN</p>
+            <p class="footer-text">© HALLOWEEN OCR 2018 | MULTI-SUMBER & MULTI-BAHASA</p>
+        </footer>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="gothic-loading" id="loadingOverlay">
+        <div class="loading-icon">🔮</div>
+        <div class="loading-text" id="loadingText">MEMUAT SCANNER...</div>
+    </div>
+
+    <script>
+        // Inisialisasi variabel
+        let worker = null;
+        let currentImage = null;
+        let currentFileName = "";
+        let isProcessing = false;
+        let detectedTextAreas = [];
+        let selectedTextArea = null;
+        let imageCanvas = null;
+        let imageContext = null;
+        let cameraStream = null;
+        let availableResolutions = [];
+        let selectedResolution = 'auto';
+
+        // DOM Elements
+        const elements = {
+            uploadArea: document.getElementById('uploadArea'),
+            fileInput: document.getElementById('fileInput'),
+            browseBtn: document.getElementById('browseBtn'),
+            cameraBtn: document.getElementById('cameraBtn'),
+            previewContainer: document.getElementById('previewContainer'),
+            imagePreview: document.getElementById('imagePreview'),
+            textDetectionOverlay: document.getElementById('textDetectionOverlay'),
+            imageControls: document.getElementById('imageControls'),
+            contrastSlider: document.getElementById('contrastSlider'),
+            contrastValue: document.getElementById('contrastValue'),
+            brightnessSlider: document.getElementById('brightnessSlider'),
+            brightnessValue: document.getElementById('brightnessValue'),
+            autoEnhanceBtn: document.getElementById('autoEnhanceBtn'),
+            previewTextContainer: document.getElementById('previewTextContainer'),
+            previewTextArea: document.getElementById('previewTextArea'),
+            cameraContainer: document.getElementById('cameraContainer'),
+            cameraView: document.getElementById('cameraView'),
+            resolutionSelect: document.getElementById('resolutionSelect'),
+            resolutionInfo: document.getElementById('resolutionInfo'),
+            captureBtn: document.getElementById('captureBtn'),
+            stopCameraBtn: document.getElementById('stopCameraBtn'),
+            detectTextBtn: document.getElementById('detectTextBtn'),
+            scanFullBtn: document.getElementById('scanFullBtn'),
+            languageSelect: document.getElementById('languageSelect'),
+            detectionModeSelect: document.getElementById('detectionModeSelect'),
+            speedSelect: document.getElementById('speedSelect'),
+            resultText: document.getElementById('resultText'),
+            copyBtn: document.getElementById('copyBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            translateBtn: document.getElementById('translateBtn'),
+            speakBtn: document.getElementById('speakBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            progressContainer: document.getElementById('progressContainer'),
+            progressFill: document.getElementById('progressFill'),
+            progressText: document.getElementById('progressText'),
+            progressPercent: document.getElementById('progressPercent'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            loadingText: document.getElementById('loadingText'),
+            resultStats: document.getElementById('resultStats'),
+            charCount: document.getElementById('charCount'),
+            wordCount: document.getElementById('wordCount'),
+            lineCount: document.getElementById('lineCount'),
+            confidence: document.getElementById('confidence'),
+            translateModal: document.getElementById('translateModal'),
+            translateFrom: document.getElementById('translateFrom'),
+            translateTo: document.getElementById('translateTo'),
+            doTranslateBtn: document.getElementById('doTranslateBtn'),
+            closeTranslateBtn: document.getElementById('closeTranslateBtn')
+        };
+
+        // Event Listeners
+        elements.browseBtn.addEventListener('click', () => elements.fileInput.click());
+        elements.fileInput.addEventListener('change', handleImageUpload);
+        elements.cameraBtn.addEventListener('click', startCamera);
+        elements.captureBtn.addEventListener('click', captureImage);
+        elements.stopCameraBtn.addEventListener('click', stopCamera);
+        elements.detectTextBtn.addEventListener('click', detectTextAreas);
+        elements.scanFullBtn.addEventListener('click', scanFullText);
+        elements.copyBtn.addEventListener('click', copyText);
+        elements.downloadBtn.addEventListener('click', downloadText);
+        elements.translateBtn.addEventListener('click', showTranslateModal);
+        elements.speakBtn.addEventListener('click', speakText);
+        elements.clearBtn.addEventListener('click', clearResults);
+        elements.autoEnhanceBtn.addEventListener('click', autoEnhanceImage);
+        elements.doTranslateBtn.addEventListener('click', translateText);
+        elements.closeTranslateBtn.addEventListener('click', () => {
+            elements.translateModal.style.display = 'none';
+        });
+        elements.resolutionSelect.addEventListener('change', async (e) => {
+            selectedResolution = e.target.value;
+            if (cameraStream) {
+                await restartCameraWithResolution();
+            }
+        });
+
+        // Slider events
+        elements.contrastSlider.addEventListener('input', updateImageFilters);
+        elements.brightnessSlider.addEventListener('input', updateImageFilters);
+
+        // Handle image upload
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) handleImageFile(file);
+        }
+
+        async function handleImageFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = async (e) => {
+                currentImage = e.target.result;
+                currentFileName = file.name;
+                
+                // Update UI
+                elements.imagePreview.src = currentImage;
+                elements.previewContainer.style.display = 'block';
+                elements.cameraContainer.style.display = 'none';
+                elements.imageControls.style.display = 'grid';
+                elements.previewTextContainer.style.display = 'none';
+                
+                // Stop camera if running
+                if (cameraStream) {
+                    stopCamera();
+                }
+                
+                // Clear previous results
+                clearResults();
+                clearTextDetection();
+                
+                // Create canvas for image processing
+                await createImageCanvas();
+                
+                // Reset sliders
+                elements.contrastSlider.value = 100;
+                elements.contrastValue.textContent = '100%';
+                elements.brightnessSlider.value = 100;
+                elements.brightnessValue.textContent = '100%';
+                
+                // Apply default filters
+                updateImageFilters();
+                
+                showNotification(`Gambar "${file.name}" berhasil dimuat!`, 'success');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        // Camera Functions
+        async function getSupportedResolutions() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                for (const device of videoDevices) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: { deviceId: device.deviceId }
+                        });
+                        
+                        const track = stream.getVideoTracks()[0];
+                        const capabilities = track.getCapabilities();
+                        
+                        if (capabilities.width && capabilities.height) {
+                            availableResolutions = {
+                                minWidth: capabilities.width.min,
+                                maxWidth: capabilities.width.max,
+                                minHeight: capabilities.height.min,
+                                maxHeight: capabilities.height.max
+                            };
+                        }
+                        
+                        track.stop();
+                        break;
+                    } catch (err) {
+                        console.log(`Tidak dapat mengakses perangkat ${device.label}`);
+                    }
+                }
+                
+                return availableResolutions;
+            } catch (err) {
+                console.error('Kesalahan mendapatkan informasi perangkat:', err);
+                return null;
+            }
+        }
+
+        function getCameraConstraints() {
+            const constraints = {
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            };
+
+            if (selectedResolution !== 'auto') {
+                const resolutions = {
+                    'hd': { width: 1280, height: 720 },
+                    'fullhd': { width: 1920, height: 1080 },
+                    'ultrahd': { width: 3840, height: 2160 }
+                };
+
+                if (resolutions[selectedResolution]) {
+                    const preset = resolutions[selectedResolution];
+                    
+                    if (availableResolutions && availableResolutions.maxWidth) {
+                        constraints.video.width = { 
+                            ideal: Math.min(preset.width, availableResolutions.maxWidth),
+                            max: Math.min(preset.width, availableResolutions.maxWidth)
+                        };
+                        constraints.video.height = { 
+                            ideal: Math.min(preset.height, availableResolutions.maxHeight),
+                            max: Math.min(preset.height, availableResolutions.maxHeight)
+                        };
+                    } else {
+                        constraints.video.width = { ideal: preset.width };
+                        constraints.video.height = { ideal: preset.height };
+                    }
+                    
+                    updateResolutionInfo(constraints.video.width.ideal, constraints.video.height.ideal);
+                }
+            } else {
+                const screenWidth = window.screen.width;
+                const screenHeight = window.screen.height;
+                
+                let idealWidth, idealHeight;
+                
+                if (screenWidth >= 3840 && screenHeight >= 2160) {
+                    idealWidth = 3840;
+                    idealHeight = 2160;
+                } else if (screenWidth >= 1920 && screenHeight >= 1080) {
+                    idealWidth = 1920;
+                    idealHeight = 1080;
+                } else if (screenWidth >= 1280 && screenHeight >= 720) {
+                    idealWidth = 1280;
+                    idealHeight = 720;
+                } else {
+                    idealWidth = 640;
+                    idealHeight = 480;
+                }
+                
+                if (availableResolutions && availableResolutions.maxWidth) {
+                    idealWidth = Math.min(idealWidth, availableResolutions.maxWidth);
+                    idealHeight = Math.min(idealHeight, availableResolutions.maxHeight);
+                }
+                
+                constraints.video.width = { ideal: idealWidth };
+                constraints.video.height = { ideal: idealHeight };
+                
+                updateResolutionInfo(idealWidth, idealHeight);
+            }
+
+            return constraints;
+        }
+
+        function updateResolutionInfo(width, height) {
+            if (width && height) {
+                elements.resolutionInfo.textContent = `${width} x ${height}`;
+            } else {
+                elements.resolutionInfo.textContent = 'Menyesuaikan...';
+            }
+        }
+
+        async function restartCameraWithResolution() {
+            if (!cameraStream) return;
+            
+            const tracks = cameraStream.getTracks();
+            tracks.forEach(track => track.stop());
+            cameraStream = null;
+            
+            await startCamera();
+        }
+
+        async function startCamera() {
+            try {
+                // Get device capabilities
+                await getSupportedResolutions();
+                
+                // Stop existing stream
+                if (cameraStream) {
+                    stopCamera();
+                }
+                
+                // Get camera constraints
+                const constraints = getCameraConstraints();
+                
+                // Request camera
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                // Set video element source
+                elements.cameraView.srcObject = cameraStream;
+                elements.cameraContainer.style.display = 'block';
+                elements.previewContainer.style.display = 'none';
+                elements.uploadArea.style.display = 'none';
+                
+                // Play the video stream
+                await elements.cameraView.play();
+                
+                // Update actual resolution info
+                const videoTrack = cameraStream.getVideoTracks()[0];
+                const settings = videoTrack.getSettings();
+                if (settings.width && settings.height) {
+                    updateResolutionInfo(settings.width, settings.height);
+                    showNotification(`Kamera aktif: ${settings.width}x${settings.height}`, 'success');
+                } else {
+                    showNotification('Kamera berhasil diaktifkan!', 'success');
+                }
+                
+            } catch (err) {
+                console.error('Kamera error:', err);
+                
+                // Try with less restrictive constraints
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: true,
+                        audio: false
+                    });
+                    
+                    elements.cameraView.srcObject = cameraStream;
+                    elements.cameraContainer.style.display = 'block';
+                    elements.previewContainer.style.display = 'none';
+                    elements.uploadArea.style.display = 'none';
+                    
+                    await elements.cameraView.play();
+                    
+                    const videoTrack = cameraStream.getVideoTracks()[0];
+                    const settings = videoTrack.getSettings();
+                    if (settings.width && settings.height) {
+                        updateResolutionInfo(settings.width, settings.height);
+                    }
+                    
+                    showNotification('Kamera berhasil diaktifkan dengan pengaturan default!', 'success');
+                } catch (err2) {
+                    console.error('Fallback camera error:', err2);
+                    showNotification('Gagal mengakses kamera! Periksa izin kamera Anda.', 'error');
+                }
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+                elements.cameraView.srcObject = null;
+                elements.cameraContainer.style.display = 'none';
+                elements.previewContainer.style.display = 'none';
+                elements.uploadArea.style.display = 'block';
+            }
+        }
+
+        function captureImage() {
+            if (!cameraStream) return;
+            
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            const video = elements.cameraView;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            context.drawImage(video, 0, 0);
+            
+            currentImage = canvas.toDataURL('image/jpeg');
+            currentFileName = `halloween_capture_${new Date().getTime()}_${canvas.width}x${canvas.height}.jpg`;
+            
+            elements.imagePreview.src = currentImage;
+            elements.previewContainer.style.display = 'block';
+            elements.cameraContainer.style.display = 'none';
+            elements.imageControls.style.display = 'grid';
+            
+            document.body.style.backgroundColor = 'rgba(255, 117, 24, 0.4)';
+            setTimeout(() => {
+                document.body.style.backgroundColor = '';
+            }, 300);
+            
+            stopCamera();
+            
+            clearResults();
+            clearTextDetection();
+            
+            showNotification(`Foto berhasil diambil! (${canvas.width}x${canvas.height})`, 'success');
+        }
+
+        // Create canvas for image processing
+        async function createImageCanvas() {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (!imageCanvas) {
+                        imageCanvas = document.createElement('canvas');
+                        imageContext = imageCanvas.getContext('2d');
+                    }
+                    imageCanvas.width = img.width;
+                    imageCanvas.height = img.height;
+                    imageContext.drawImage(img, 0, 0);
+                    resolve();
+                };
+                img.src = currentImage;
+            });
+        }
+
+        // Update image filters
+        function updateImageFilters() {
+            if (!elements.imagePreview.complete) return;
+            
+            const contrast = elements.contrastSlider.value / 100;
+            const brightness = elements.brightnessSlider.value / 100;
+            
+            elements.contrastValue.textContent = `${elements.contrastSlider.value}%`;
+            elements.brightnessValue.textContent = `${elements.brightnessSlider.value}%`;
+            
+            elements.imagePreview.style.filter = `
+                contrast(${contrast})
+                brightness(${brightness})
+                sepia(0.2)
+            `;
+        }
+
+        // Auto enhance image
+        function autoEnhanceImage() {
+            elements.contrastSlider.value = 140;
+            elements.brightnessSlider.value = 110;
+            
+            updateImageFilters();
+            showNotification('Gambar dioptimalkan secara otomatis!', 'success');
+        }
+
+        // Clear text detection overlay
+        function clearTextDetection() {
+            elements.textDetectionOverlay.innerHTML = '';
+            detectedTextAreas = [];
+            selectedTextArea = null;
+            elements.previewTextArea.textContent = '';
+            elements.previewTextContainer.style.display = 'none';
+        }
+
+        // Detect text areas
+        async function detectTextAreas() {
+            if (!currentImage) {
+                showNotification('Tidak ada gambar untuk diproses!', 'error');
+                return;
+            }
+
+            clearTextDetection();
+            
+            elements.loadingOverlay.style.display = 'flex';
+            elements.loadingText.textContent = 'Mendeteksi area teks...';
+            
+            try {
+                // Initialize Tesseract worker
+                if (!worker) {
+                    worker = await Tesseract.createWorker({
+                        logger: updateProgress,
+                        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@v4.0.2/dist/worker.min.js',
+                        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@v4.0.2/tesseract-core.wasm.js',
+                    });
+                }
+
+                const language = elements.languageSelect.value;
+                await worker.loadLanguage(language);
+                await worker.initialize(language);
+                
+                // Set detection mode
+                const detectionMode = elements.detectionModeSelect.value;
+                let pageSegMode = Tesseract.PSM.AUTO;
+                
+                switch(detectionMode) {
+                    case 'single_line':
+                        pageSegMode = Tesseract.PSM.SINGLE_LINE;
+                        break;
+                    case 'single_block':
+                        pageSegMode = Tesseract.PSM.SINGLE_BLOCK;
+                        break;
+                    case 'multiple_blocks':
+                        pageSegMode = Tesseract.PSM.AUTO;
+                        break;
+                    case 'sparse_text':
+                        pageSegMode = Tesseract.PSM.SPARSE_TEXT;
+                        break;
+                    default:
+                        pageSegMode = Tesseract.PSM.AUTO;
+                }
+                
+                await worker.setParameters({
+                    tessedit_pageseg_mode: pageSegMode,
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;- \'"()[]{}',
+                });
+
+                // Get processed image
+                const processedImage = await getProcessedImage();
+                
+                // Detect text blocks
+                elements.loadingText.textContent = 'Menganalisis struktur teks...';
+                const { data } = await worker.recognize(processedImage);
+                
+                // Display detected text areas
+                displayTextAreas(data.words || []);
+                
+                // Show preview text
+                if (data.text && data.text.trim().length > 0) {
+                    elements.previewTextArea.textContent = data.text.substring(0, 500) + (data.text.length > 500 ? '...' : '');
+                    elements.previewTextContainer.style.display = 'block';
+                }
+                
+                showNotification(`${detectedTextAreas.length} area teks terdeteksi!`, 'success');
+                
+            } catch (error) {
+                console.error('Text detection error:', error);
+                showNotification('Gagal mendeteksi teks!', 'error');
+            } finally {
+                elements.loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Get processed image
+        async function getProcessedImage() {
+            const img = new Image();
+            
+            return new Promise((resolve) => {
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    const contrast = elements.contrastSlider.value / 100;
+                    const brightness = elements.brightnessSlider.value / 100;
+                    
+                    ctx.filter = `contrast(${contrast}) brightness(${brightness})`;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Convert to grayscale for better OCR
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imageData.data;
+                    
+                    for (let i = 0; i < data.length; i += 4) {
+                        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                        data[i] = avg;
+                        data[i + 1] = avg;
+                        data[i + 2] = avg;
+                    }
+                    
+                    ctx.putImageData(imageData, 0, 0);
+                    resolve(canvas.toDataURL('image/jpeg', 0.9));
+                };
+                img.src = currentImage;
+            });
+        }
+
+        // Display text areas on overlay
+        function displayTextAreas(words) {
+            const overlay = elements.textDetectionOverlay;
+            const img = elements.imagePreview;
+            const containerRect = img.getBoundingClientRect();
+            const scaleX = img.naturalWidth / containerRect.width;
+            const scaleY = img.naturalHeight / containerRect.height;
+            
+            detectedTextAreas = [];
+            
+            // Group words by lines
+            const lines = {};
+            words.forEach(word => {
+                if (word.confidence > 30 && word.text.trim().length > 0) {
+                    const lineKey = Math.round(word.bbox.y0 / 10) * 10;
+                    if (!lines[lineKey]) {
+                        lines[lineKey] = [];
+                    }
+                    lines[lineKey].push(word);
+                }
+            });
+            
+            // Create boxes for each line
+            Object.values(lines).forEach(lineWords => {
+                if (lineWords.length > 0) {
+                    const firstWord = lineWords[0];
+                    const lastWord = lineWords[lineWords.length - 1];
+                    
+                    const region = {
+                        x: firstWord.bbox.x0 / scaleX,
+                        y: firstWord.bbox.y0 / scaleY,
+                        width: (lastWord.bbox.x1 - firstWord.bbox.x0) / scaleX,
+                        height: (firstWord.bbox.y1 - firstWord.bbox.y0) / scaleY,
+                        text: lineWords.map(w => w.text).join(' '),
+                        confidence: lineWords.reduce((sum, w) => sum + w.confidence, 0) / lineWords.length,
+                        words: lineWords
+                    };
+                    
+                    detectedTextAreas.push(region);
+                    
+                    // Create text box element
+                    const textBox = document.createElement('div');
+                    textBox.className = 'detected-text-box';
+                    textBox.style.left = `${region.x}px`;
+                    textBox.style.top = `${region.y}px`;
+                    textBox.style.width = `${region.width}px`;
+                    textBox.style.height = `${region.height}px`;
+                    textBox.dataset.index = detectedTextAreas.length - 1;
+                    
+                    // Create label
+                    const label = document.createElement('div');
+                    label.className = 'text-box-label';
+                    const shortText = region.text.length > 20 ? region.text.substring(0, 20) + '...' : region.text;
+                    label.textContent = `${shortText} (${Math.round(region.confidence)}%)`;
+                    
+                    textBox.appendChild(label);
+                    
+                    // Click event for selection
+                    textBox.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectTextArea(detectedTextAreas.length - 1);
+                    });
+                    
+                    overlay.appendChild(textBox);
+                }
+            });
+            
+            // Add click event to clear selection
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    clearSelection();
+                }
+            });
+        }
+
+        // Select text area
+        function selectTextArea(index) {
+            clearSelection();
+            
+            selectedTextArea = detectedTextAreas[index];
+            const textBox = elements.textDetectionOverlay.querySelector(`[data-index="${index}"]`);
+            textBox.classList.add('active');
+            
+            elements.previewTextArea.textContent = selectedTextArea.text;
+            elements.previewTextContainer.style.display = 'block';
+            
+            showNotification(`Teks terpilih: "${selectedTextArea.text.substring(0, 50)}${selectedTextArea.text.length > 50 ? '...' : ''}"`, 'info');
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedTextArea = null;
+            elements.textDetectionOverlay.querySelectorAll('.detected-text-box').forEach(box => {
+                box.classList.remove('active');
+            });
+        }
+
+        // Scan full text
+        async function scanFullText() {
+            if (!currentImage) {
+                showNotification('Tidak ada gambar untuk diproses!', 'error');
+                return;
+            }
+
+            if (isProcessing) return;
+            isProcessing = true;
+
+            elements.loadingOverlay.style.display = 'flex';
+            elements.progressContainer.style.display = 'block';
+            elements.loadingText.textContent = 'Memulai scan teks lengkap...';
+            
+            const language = elements.languageSelect.value;
+            const speed = elements.speedSelect.value;
+            
+            try {
+                // Initialize Tesseract worker
+                if (!worker) {
+                    worker = await Tesseract.createWorker({
+                        logger: updateProgress,
+                        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@v4.0.2/dist/worker.min.js',
+                        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@v4.0.2/tesseract-core.wasm.js',
+                    });
+                }
+
+                await worker.loadLanguage(language);
+                await worker.initialize(language);
+                
+                // Set parameters based on speed
+                let pageSegMode = Tesseract.PSM.AUTO;
+                let whitelist = '';
+                
+                switch(speed) {
+                    case 'fast':
+                        pageSegMode = Tesseract.PSM.SINGLE_BLOCK;
+                        whitelist = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!? ';
+                        break;
+                    case 'balanced':
+                        pageSegMode = Tesseract.PSM.AUTO;
+                        whitelist = '';
+                        break;
+                    case 'accurate':
+                    default:
+                        pageSegMode = Tesseract.PSM.AUTO;
+                        whitelist = '';
+                }
+                
+                await worker.setParameters({
+                    tessedit_pageseg_mode: pageSegMode,
+                    tessedit_char_whitelist: whitelist,
+                    preserve_interword_spaces: '1',
+                    textord_min_linesize: '2.5',
+                });
+
+                // Get processed image
+                const processedImage = await getProcessedImage();
+                
+                // Recognize text
+                elements.loadingText.textContent = 'Memindai teks dengan akurasi tinggi...';
+                const { data } = await worker.recognize(processedImage);
+                
+                // Process results
+                let extractedText = data.text;
+                
+                // Clean up text
+                extractedText = cleanExtractedText(extractedText);
+                
+                // Update results
+                elements.resultText.textContent = extractedText;
+                updateTextStats(extractedText, data.confidence);
+                
+                // Show success
+                showNotification(`Berhasil mengekstraksi teks dengan akurasi ${Math.round(data.confidence)}%!`, 'success');
+                
+            } catch (error) {
+                console.error('OCR Error:', error);
+                showNotification('Gagal memproses gambar!', 'error');
+                elements.resultText.textContent = 'Terjadi kesalahan saat memproses gambar. Pastikan gambar memiliki teks yang jelas dan kontras yang baik.\n\nTips:\n1. Pastikan gambar terang dan jelas\n2. Teks harus kontras dengan latar belakang\n3. Hindari sudut kemiringan yang ekstrim\n4. Gunakan pengaturan "Optimalkan Gambar"';
+            } finally {
+                elements.loadingOverlay.style.display = 'none';
+                elements.progressContainer.style.display = 'none';
+                isProcessing = false;
+            }
+        }
+
+        // Clean extracted text
+        function cleanExtractedText(text) {
+            // Remove excessive whitespace
+            text = text.replace(/\s+/g, ' ');
+            
+            // Fix common OCR errors
+            text = text.replace(/[l|]/g, 'I');
+            text = text.replace(/[0O]/g, '0');
+            text = text.replace(/[1l]/g, '1');
+            text = text.replace(/[5S]/g, '5');
+            text = text.replace(/[8B]/g, '8');
+            
+            // Fix punctuation
+            text = text.replace(/\s+\./g, '.');
+            text = text.replace(/\s+,/g, ',');
+            text = text.replace(/\s+:/g, ':');
+            text = text.replace(/\s+;/g, ';');
+            text = text.replace(/\s+!/g, '!');
+            text = text.replace(/\s+\?/g, '?');
+            
+            // Fix line breaks
+            text = text.replace(/\n\s*\n/g, '\n\n');
+            
+            // Capitalize sentences
+            text = text.replace(/(^|\.\s+)([a-z])/g, (match, p1, p2) => p1 + p2.toUpperCase());
+            
+            return text.trim();
+        }
+
+        // Show translation modal
+        function showTranslateModal() {
+            const text = elements.resultText.textContent;
+            if (!text || text.includes('Hasil ekstraksi')) {
+                showNotification('Tidak ada teks untuk diterjemahkan!', 'error');
+                return;
+            }
+            
+            elements.translateModal.style.display = 'flex';
+        }
+
+        // Translate text
+        async function translateText() {
+            const text = elements.resultText.textContent;
+            if (!text) return;
+            
+            const fromLang = elements.translateFrom.value;
+            const toLang = elements.translateTo.value;
+            
+            elements.loadingOverlay.style.display = 'flex';
+            elements.loadingText.textContent = 'Menerjemahkan teks...';
+            
+            try {
+                // Use MyMemory Translation API
+                const response = await fetch(
+                    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang}|${toLang}`
+                );
+                
+                const data = await response.json();
+                
+                if (data.responseData) {
+                    elements.resultText.textContent = data.responseData.translatedText;
+                    showNotification('Teks berhasil diterjemahkan!', 'success');
+                } else {
+                    throw new Error('Translation failed');
+                }
+            } catch (error) {
+                console.error('Translation error:', error);
+                showNotification('Gagal menerjemahkan teks!', 'error');
+            } finally {
+                elements.loadingOverlay.style.display = 'none';
+                elements.translateModal.style.display = 'none';
+            }
+        }
+
+        // Text to speech
+        function speakText() {
+            const text = elements.resultText.textContent;
+            if (!text || text.includes('Hasil ekstraksi')) {
+                showNotification('Tidak ada teks untuk dibaca!', 'error');
+                return;
+            }
+
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                elements.speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> MEMBACA...';
+                utterance.onend = () => {
+                    elements.speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> DENGARKAN';
+                };
+                
+                speechSynthesis.speak(utterance);
+                showNotification('Mendengarkan teks...', 'info');
+            } else {
+                showNotification('Browser tidak mendukung text-to-speech!', 'error');
+            }
+        }
+
+        // Update progress bar
+        function updateProgress(message) {
+            if (message.status === 'recognizing text') {
+                const progress = Math.min(Math.round(message.progress * 100), 100);
+                elements.progressFill.style.width = `${progress}%`;
+                elements.progressPercent.textContent = `${progress}%`;
+                
+                const messages = [
+                    'Mempersiapkan scanner...',
+                    'Memproses gambar...',
+                    'Mendeteksi karakter...',
+                    'Mengenali teks...',
+                    'Menyelesaikan...'
+                ];
+                
+                const msgIndex = Math.min(Math.floor(progress / 20), 4);
+                elements.progressText.textContent = messages[msgIndex];
+                elements.loadingText.textContent = messages[msgIndex];
+            }
+        }
+
+        // Update statistics
+        function updateTextStats(text, confidence = 0) {
+            if (!text) return;
+            
+            const charCount = text.length;
+            const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            const lineCount = text.split('\n').filter(line => line.trim().length > 0).length;
+            const confPercent = Math.round(confidence);
+            
+            animateCount(elements.charCount, 0, charCount, 1000);
+            animateCount(elements.wordCount, 0, wordCount, 1000);
+            animateCount(elements.lineCount, 0, lineCount, 1000);
+            animateCount(elements.confidence, 0, confPercent, 1000);
+            
+            elements.resultStats.style.display = 'grid';
+        }
+
+        // Animate counting
+        function animateCount(element, start, end, duration) {
+            const range = end - start;
+            const startTime = Date.now();
+            
+            function updateNumber() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = Math.floor(start + range * progress);
+                element.textContent = element === elements.confidence ? `${current}%` : current.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            updateNumber();
+        }
+
+        // Copy text
+        function copyText() {
+            const text = elements.resultText.textContent;
+            if (!text || text.includes('Hasil ekstraksi')) {
+                showNotification('Tidak ada teks untuk disalin!', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showNotification('Teks berhasil disalin ke clipboard!', 'success');
+                    elements.copyBtn.innerHTML = '<i class="fas fa-check"></i> TERSALIN!';
+                    setTimeout(() => {
+                        elements.copyBtn.innerHTML = '<i class="fas fa-copy"></i> SALIN TEKS';
+                    }, 2000);
+                })
+                .catch(() => {
+                    showNotification('Gagal menyalin teks', 'error');
+                });
+        }
+
+        // Download text
+        function downloadText() {
+            const text = elements.resultText.textContent;
+            if (!text || text.includes('Hasil ekstraksi')) {
+                showNotification('Tidak ada teks untuk diunduh!', 'error');
+                return;
+            }
+
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            const fileName = currentFileName 
+                ? `halloween_ocr_${currentFileName.replace(/\.[^/.]+$/, "")}_${new Date().getTime()}.txt`
+                : `halloween_ocr_scan_${new Date().getTime()}.txt`;
+            
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification(`Teks berhasil diunduh sebagai "${fileName}"`, 'success');
+        }
+
+        // Clear results
+        function clearResults() {
+            elements.resultText.textContent = '';
+            elements.resultStats.style.display = 'none';
+            clearTextDetection();
+            showNotification('Semua hasil telah dihapus!', 'info');
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            document.querySelectorAll('.gothic-notification').forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `gothic-notification`;
+            
+            const colors = {
+                success: '#228B22',
+                error: '#8B0000',
+                info: '#FF7518'
+            };
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: '🔮'
+            };
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="font-size: 32px;">${icons[type]}</div>
+                    <div style="flex: 1;">
+                        <div style="color: ${colors[type]}; font-weight: bold; margin-bottom: 5px; font-family: 'Cinzel', serif;">
+                            ${type === 'success' ? 'BERHASIL' : type === 'error' ? 'KESALAHAN' : 'INFORMASI'}
+                        </div>
+                        <div style="color: #B0B0B0; font-size: 16px;">${message}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px) scale(0.8)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                showNotification('Selamat datang di Halloween OCR! Unggah gambar atau gunakan kamera untuk memulai scan.', 'info');
+            }, 1000);
+            
+            // Add drag and drop support
+            elements.uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                elements.uploadArea.style.background = 'rgba(255, 117, 24, 0.2)';
+                elements.uploadArea.style.borderColor = 'var(--halloween-purple)';
+            });
+
+            elements.uploadArea.addEventListener('dragleave', () => {
+                elements.uploadArea.style.background = '';
+                elements.uploadArea.style.borderColor = '';
+            });
+
+            elements.uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                elements.uploadArea.style.background = '';
+                elements.uploadArea.style.borderColor = '';
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    handleImageFile(file);
+                } else {
+                    showNotification('Hanya file gambar yang didukung!', 'error');
+                }
+            });
+        });
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (worker) {
+                worker.terminate();
+            }
+            if (cameraStream) {
+                stopCamera();
+            }
+        });
+    </script>
+</body>
+</html>
